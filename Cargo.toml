@@ -9,4 +9,5 @@ repository = "https://github.com/gifnksm/mani-sl"
 description = "Your bad habit of mistyping increases good karma!"
 
 [dependencies]
-ncurses = "5.*"
+ncurses = "*"
+unicode-width = "*"

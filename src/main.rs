@@ -1,18 +1,15 @@
 #![feature(libc)]
-#![feature(std_misc)]
 #![feature(step_by)]
 #![feature(str_char)]
-#![feature(thread_sleep)]
-#![feature(unicode)]
-
 #![feature(non_ascii_idents)]
 
 extern crate libc;
 extern crate ncurses;
+extern crate unicode_width;
 
 use std::thread;
-use std::time::duration::Duration;
 use locale::Category;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 mod locale;
 
@@ -39,7 +36,7 @@ fn main() {
         }
         ncurses::getch();
         ncurses::refresh();
-        thread::sleep(Duration::milliseconds(4));
+        thread::sleep_ms(4);
     }
 
     ncurses::mvcur(0, ncurses::COLS - 1, ncurses::LINES - 1, 0);
@@ -59,7 +56,11 @@ fn trim_right_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize)
     while w < width {
         if s.is_empty() { return (s, w) }
         let range = s.char_range_at_reverse(s.len());
-        w += range.ch.width(is_cjk).unwrap();
+        w += if is_cjk {
+            range.ch.width_cjk().unwrap()
+        } else {
+            UnicodeWidthChar::width(range.ch).unwrap()
+        };
         s = &s[.. range.next];
     }
     assert!(w >= width);
@@ -73,7 +74,11 @@ fn trim_left_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize) 
     while w < width {
         if s.is_empty() { return (s, w) }
         let range = s.char_range_at(0);
-        w += range.ch.width(is_cjk).unwrap();
+        w += if is_cjk {
+            range.ch.width_cjk().unwrap()
+        } else {
+            UnicodeWidthChar::width(range.ch).unwrap()
+        };
         s = &s[range.next ..];
     }
     assert!(w >= width);
@@ -86,7 +91,11 @@ fn slice_by_width(s: &str, width: usize, is_cjk: bool) -> (&str, &str, usize) {
     loop {
         let range = s.char_range_at(i);
 
-        let w = range.ch.width(is_cjk).unwrap();
+        let w = if is_cjk {
+            range.ch.width_cjk().unwrap()
+        } else {
+            UnicodeWidthChar::width(range.ch).unwrap()
+        };
         if w + taken_width > width {
             break
         }
@@ -118,7 +127,12 @@ fn render_line(y: i32, x: i32, mut line: &str, is_cjk: bool) -> Result<bool, ()>
 
     let render_width = (ncurses::COLS - x) as usize;
 
-    let w = line.width(is_cjk);
+    let w = if is_cjk {
+        line.width_cjk()
+    } else {
+        UnicodeWidthStr::width(line)
+    };
+    // let w = line.width(is_cjk);
     if w > render_width {
         line = trim_right_by_width(line, w - render_width, is_cjk).0;
         if line.is_empty() { return Ok(true) }
