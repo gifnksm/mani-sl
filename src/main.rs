@@ -7,6 +7,7 @@ extern crate ncurses;
 extern crate unicode_width;
 
 use std::thread;
+use std::time::Duration;
 use locale::Category;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -35,7 +36,7 @@ fn main() {
         }
         ncurses::getch();
         ncurses::refresh();
-        thread::sleep_ms(4);
+        thread::sleep(Duration::from_millis(4));
     }
 
     ncurses::mvcur(0, ncurses::COLS - 1, ncurses::LINES - 1, 0);
