@@ -1,4 +1,3 @@
-#![feature(libc)]
 #![feature(step_by)]
 #![feature(str_char)]
 #![feature(non_ascii_idents)]
@@ -18,7 +17,7 @@ fn main() {
     let scr = ncurses::initscr();
 
     unsafe {
-        libc::funcs::posix01::signal::signal(libc::SIGINT, libc::SIG_IGN);
+        libc::signal(libc::SIGINT, libc::SIG_IGN);
     }
 
     ncurses::noecho();

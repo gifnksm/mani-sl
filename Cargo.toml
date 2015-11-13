@@ -11,3 +11,4 @@ description = "Your bad habit of mistyping increases good karma!"
 [dependencies]
 ncurses = "*"
 unicode-width = "*"
+libc = "*"
