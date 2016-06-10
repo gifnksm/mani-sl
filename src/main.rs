@@ -1,5 +1,4 @@
 #![feature(step_by)]
-#![feature(str_char)]
 #![feature(non_ascii_idents)]
 
 extern crate libc;
@@ -57,13 +56,13 @@ fn trim_right_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize)
         if s.is_empty() {
             return (s, w);
         }
-        let range = s.char_range_at_reverse(s.len());
+        let ch = s.chars().rev().next().unwrap();
         w += if is_cjk {
-            range.ch.width_cjk().unwrap()
+            ch.width_cjk().unwrap()
         } else {
-            UnicodeWidthChar::width(range.ch).unwrap()
+            UnicodeWidthChar::width(ch).unwrap()
         };
-        s = &s[..range.next];
+        s = &s[..s.len() - ch.len_utf8()];
     }
     assert!(w >= width);
     (s, w)
@@ -79,13 +78,13 @@ fn trim_left_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize) 
         if s.is_empty() {
             return (s, w);
         }
-        let range = s.char_range_at(0);
+        let ch = s.chars().next().unwrap();
         w += if is_cjk {
-            range.ch.width_cjk().unwrap()
+            ch.width_cjk().unwrap()
         } else {
-            UnicodeWidthChar::width(range.ch).unwrap()
+            UnicodeWidthChar::width(ch).unwrap()
         };
-        s = &s[range.next..];
+        s = &s[ch.len_utf8()..];
     }
     assert!(w >= width);
     (s, w)
@@ -95,19 +94,19 @@ fn slice_by_width(s: &str, width: usize, is_cjk: bool) -> (&str, &str, usize) {
     let mut taken_width = 0;
     let mut i = 0;
     loop {
-        let range = s.char_range_at(i);
+        let ch = s[i..].chars().next().unwrap();
 
         let w = if is_cjk {
-            range.ch.width_cjk().unwrap()
+            ch.width_cjk().unwrap()
         } else {
-            UnicodeWidthChar::width(range.ch).unwrap()
+            UnicodeWidthChar::width(ch).unwrap()
         };
         if w + taken_width > width {
             break;
         }
 
         taken_width += w;
-        i = range.next;
+        i += ch.len_utf8();
         if i >= s.len() {
             break;
         }
