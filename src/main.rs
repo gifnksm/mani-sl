@@ -27,7 +27,7 @@ fn main() {
     ncurses::leaveok(scr, true);
     ncurses::scrollok(scr, false);
 
-    for x in (ncurses::COLS - 1 ..).step_by(-1) {
+    for x in (ncurses::COLS - 1..).step_by(-1) {
         ncurses::clear();
         match render_般若心経(100, 100, x, true) {
             Err(()) => panic!(),
@@ -54,32 +54,38 @@ fn mvaddstr(y: i32, x: i32, s: &str) -> Result<(), ()> {
 fn trim_right_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize) {
     let mut w = 0;
     while w < width {
-        if s.is_empty() { return (s, w) }
+        if s.is_empty() {
+            return (s, w);
+        }
         let range = s.char_range_at_reverse(s.len());
         w += if is_cjk {
             range.ch.width_cjk().unwrap()
         } else {
             UnicodeWidthChar::width(range.ch).unwrap()
         };
-        s = &s[.. range.next];
+        s = &s[..range.next];
     }
     assert!(w >= width);
     (s, w)
 }
 
 fn trim_left_by_width(mut s: &str, width: usize, is_cjk: bool) -> (&str, usize) {
-    if s.is_empty() { return (s, 0) }
+    if s.is_empty() {
+        return (s, 0);
+    }
 
     let mut w = 0;
     while w < width {
-        if s.is_empty() { return (s, w) }
+        if s.is_empty() {
+            return (s, w);
+        }
         let range = s.char_range_at(0);
         w += if is_cjk {
             range.ch.width_cjk().unwrap()
         } else {
             UnicodeWidthChar::width(range.ch).unwrap()
         };
-        s = &s[range.next ..];
+        s = &s[range.next..];
     }
     assert!(w >= width);
     (s, w)
@@ -97,16 +103,18 @@ fn slice_by_width(s: &str, width: usize, is_cjk: bool) -> (&str, &str, usize) {
             UnicodeWidthChar::width(range.ch).unwrap()
         };
         if w + taken_width > width {
-            break
+            break;
         }
 
         taken_width += w;
         i = range.next;
-        if i >= s.len() { break }
+        if i >= s.len() {
+            break;
+        }
     }
 
     assert!(taken_width <= width);
-    (&s[.. i], &s[i ..], taken_width)
+    (&s[..i], &s[i..], taken_width)
 }
 
 fn split_by_width(mut s: &str, width: usize, is_cjk: bool) -> Vec<&str> {
@@ -121,9 +129,15 @@ fn split_by_width(mut s: &str, width: usize, is_cjk: bool) -> Vec<&str> {
 }
 
 fn render_line(y: i32, x: i32, mut line: &str, is_cjk: bool) -> Result<bool, ()> {
-    if line.is_empty() { return Ok(false) }
-    if x >= ncurses::COLS { return Ok(true) }
-    if y >= ncurses::LINES || y < 0 { return Ok(false) }
+    if line.is_empty() {
+        return Ok(false);
+    }
+    if x >= ncurses::COLS {
+        return Ok(true);
+    }
+    if y >= ncurses::LINES || y < 0 {
+        return Ok(false);
+    }
 
     let render_width = (ncurses::COLS - x) as usize;
 
@@ -135,12 +149,16 @@ fn render_line(y: i32, x: i32, mut line: &str, is_cjk: bool) -> Result<bool, ()>
     // let w = line.width(is_cjk);
     if w > render_width {
         line = trim_right_by_width(line, w - render_width, is_cjk).0;
-        if line.is_empty() { return Ok(true) }
+        if line.is_empty() {
+            return Ok(true);
+        }
     }
 
     if x < 0 {
         let (line, w) = trim_left_by_width(line, (-x) as usize, is_cjk);
-        if line.is_empty() { return Ok(false) }
+        if line.is_empty() {
+            return Ok(false);
+        }
 
         try!(mvaddstr(y, (w as i32) + x, line));
     } else {
@@ -159,10 +177,12 @@ fn render_般若心経(repeat: usize, width: usize, x0: i32, is_cjk: bool) -> Re
 
     let y0 = (ncurses::LINES - ((num_line_blocks * (lines.len() + 1)) as i32)) / 2;
     let mut cont = false;
-    for i in 0 .. num_line_blocks {
+    for i in 0..num_line_blocks {
         let mut num_column_blocks = d;
-        if i < m { num_column_blocks += 1; }
-        for j in 0 .. num_column_blocks {
+        if i < m {
+            num_column_blocks += 1;
+        }
+        for j in 0..num_column_blocks {
             let x = x0 + ((width + 1) * j) as i32;
             let y = y0 + (i * (lines.len() + 1)) as i32;
             for (dy, line) in lines.iter().enumerate() {
@@ -173,22 +193,26 @@ fn render_般若心経(repeat: usize, width: usize, x0: i32, is_cjk: bool) -> Re
     Ok(cont)
 }
 
-const 般若心経: &'static str = "
+const 般若心経: &'static str =
+    "
 摩訶般若波羅蜜多心経
 観自在菩薩行深般若波羅蜜多時照見五
 蘊皆空度一切苦厄舎利子色不異空空不
 異色色即是空空即是色受想行識亦復如
 是舎利子是諸法空相不生不滅不垢不浄
-不増不減是故空中無色無受想行識無眼
+\
+     不増不減是故空中無色無受想行識無眼
 耳鼻舌身意無色声香味触法無眼界乃至
 無意識界無無明亦無無明尽乃至無老死
 亦無老死尽無苦集滅道無智亦無得以無
 所得故菩提薩埵依般若波羅蜜多故心無
-罣礙無罣礙故無有恐怖遠離一切顛倒夢
+\
+     罣礙無罣礙故無有恐怖遠離一切顛倒夢
 想究竟涅槃三世諸仏依般若波羅蜜多故
 得阿耨多羅三藐三菩提故知般若波羅蜜
 多是大神咒是大明咒是無上咒是無等等
 咒能除一切苦真実不虚故説般若波羅蜜
-多咒即説咒曰
+\
+     多咒即説咒曰
 掲諦掲諦波羅掲諦波羅僧掲諦菩提薩婆訶
 般若心経";

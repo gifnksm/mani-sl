@@ -1,12 +1,12 @@
 use libc::c_int;
 use std::ffi::{CString, CStr};
 
-const LC_ALL:      c_int = 0;
-const LC_COLLATE:  c_int = 1;
-const LC_CTYPE:    c_int = 2;
+const LC_ALL: c_int = 0;
+const LC_COLLATE: c_int = 1;
+const LC_CTYPE: c_int = 2;
 const LC_MONETARY: c_int = 3;
-const LC_NUMERIC:  c_int = 4;
-const LC_TIME:     c_int = 5;
+const LC_NUMERIC: c_int = 4;
+const LC_TIME: c_int = 5;
 const LC_MESSAGES: c_int = 6;
 
 #[repr(i32)]
@@ -22,7 +22,7 @@ pub enum Category {
 }
 
 mod native {
-    use libc::{c_char,c_int};
+    use libc::{c_char, c_int};
     extern "C" {
         pub fn setlocale(category: c_int, locale: *const c_char) -> *const c_char;
     }
