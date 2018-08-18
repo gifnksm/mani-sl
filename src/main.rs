@@ -1,6 +1,3 @@
-#![feature(step_by)]
-#![feature(non_ascii_idents)]
-
 extern crate libc;
 extern crate ncurses;
 extern crate unicode_width;
@@ -26,9 +23,9 @@ fn main() {
     ncurses::leaveok(scr, true);
     ncurses::scrollok(scr, false);
 
-    for x in (ncurses::COLS - 1..).step_by(-1) {
+    for x in (0..ncurses::COLS()).rev() {
         ncurses::clear();
-        match render_般若心経(100, 100, x, true) {
+        match render(100, 100, x, true) {
             Err(()) => panic!(),
             Ok(false) => break,
             Ok(true) => {}
@@ -38,7 +35,7 @@ fn main() {
         thread::sleep(Duration::from_millis(4));
     }
 
-    ncurses::mvcur(0, ncurses::COLS - 1, ncurses::LINES - 1, 0);
+    ncurses::mvcur(0, ncurses::COLS() - 1, ncurses::LINES() - 1, 0);
     ncurses::endwin();
 }
 
@@ -131,14 +128,14 @@ fn render_line(y: i32, x: i32, mut line: &str, is_cjk: bool) -> Result<bool, ()>
     if line.is_empty() {
         return Ok(false);
     }
-    if x >= ncurses::COLS {
+    if x >= ncurses::COLS() {
         return Ok(true);
     }
-    if y >= ncurses::LINES || y < 0 {
+    if y >= ncurses::LINES() || y < 0 {
         return Ok(false);
     }
 
-    let render_width = (ncurses::COLS - x) as usize;
+    let render_width = (ncurses::COLS() - x) as usize;
 
     let w = if is_cjk {
         line.width_cjk()
@@ -167,14 +164,14 @@ fn render_line(y: i32, x: i32, mut line: &str, is_cjk: bool) -> Result<bool, ()>
     Ok(true)
 }
 
-fn render_般若心経(repeat: usize, width: usize, x0: i32, is_cjk: bool) -> Result<bool, ()> {
-    let s = 般若心経.replace("\n", "");
+fn render(repeat: usize, width: usize, x0: i32, is_cjk: bool) -> Result<bool, ()> {
+    let s = HANNYA.replace("\n", "");
     let lines = split_by_width(&s, width, is_cjk);
 
-    let num_line_blocks = (ncurses::LINES as usize) / (lines.len() + 1);
+    let num_line_blocks = (ncurses::LINES() as usize) / (lines.len() + 1);
     let (d, m) = (repeat / num_line_blocks, repeat % num_line_blocks);
 
-    let y0 = (ncurses::LINES - ((num_line_blocks * (lines.len() + 1)) as i32)) / 2;
+    let y0 = (ncurses::LINES() - ((num_line_blocks * (lines.len() + 1)) as i32)) / 2;
     let mut cont = false;
     for i in 0..num_line_blocks {
         let mut num_column_blocks = d;
@@ -192,7 +189,7 @@ fn render_般若心経(repeat: usize, width: usize, x0: i32, is_cjk: bool) -> Re
     Ok(cont)
 }
 
-const 般若心経: &'static str =
+const HANNYA: &'static str =
     "
 摩訶般若波羅蜜多心経
 観自在菩薩行深般若波羅蜜多時照見五
